@@ -1,8 +1,17 @@
 #!/bin/bash
 
-# Ensure dependencies are installed
+# Install dependencies
 echo "Installing dependencies..."
 pip install -r requirements.txt
+
+# Install Chrome and Chromedriver
+echo "Installing Chrome and Chromedriver..."
+apt-get update
+apt-get install -y wget unzip google-chrome-stable chromium-chromedriver
+
+# Set environment variables
+export GOOGLE_CHROME_BIN=/usr/bin/google-chrome
+export CHROMEDRIVER_PATH=/usr/bin/chromedriver
 
 # Start the Flask server
 echo "Starting the web server..."
