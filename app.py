@@ -32,14 +32,16 @@ def scrape_article():
         selectors_df['Selector'] = selectors_df['Selector'].astype(str)
 
                 # Configure Chrome options
+        # Configure Chrome options
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in headless mode
+        chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.binary_location = os.getenv("GOOGLE_CHROME_BIN", "/usr/bin/google-chrome")
         
-        # Automatically download and manage the appropriate Chromedriver
+        # Use `webdriver-manager` to manage Chromedriver
         driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),  # This manages the Chromedriver
+            service=Service(ChromeDriverManager().install()),
             options=chrome_options
         )
 
