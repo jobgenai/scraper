@@ -1,17 +1,7 @@
 from flask import Flask, request, jsonify
 from bs4 import BeautifulSoup
 import pandas as pd
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By  # This is the missing import
-from webdriver_manager.chrome import ChromeDriverManager
-import os
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+import requests
 
 app = Flask(__name__)
 
@@ -31,28 +21,13 @@ def scrape_article():
         selectors_df['Field Name'] = selectors_df['Field Name'].astype(str)
         selectors_df['Selector'] = selectors_df['Selector'].astype(str)
 
-                # Configure Chrome options
-        # Configure Chrome options
-        chrome_options = Options()
-        chrome_options.add_argument("--headless")
-        chrome_options.add_argument("--no-sandbox")
-        chrome_options.add_argument("--disable-dev-shm-usage")
-        chrome_options.binary_location = os.getenv("GOOGLE_CHROME_BIN", "/usr/bin/google-chrome")
-        
-        # Use `webdriver-manager` to manage Chromedriver
-        driver = webdriver.Chrome(
-            service=Service(ChromeDriverManager().install()),
-            options=chrome_options
-        )
+        # Fetch the page content using requests
+        response = requests.get(url)
+        if response.status_code != 200:
+            return jsonify({'error': f'Failed to fetch URL, status code: {response.status_code}'}), 500
 
-        # Load the dynamic page and wait for it to load fully
-        driver.get(url)
-        WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        page_source = driver.page_source
-        driver.quit()
-
-        # Parse the dynamically loaded page content
-        soup = BeautifulSoup(page_source, 'html.parser')
+        # Parse the HTML content
+        soup = BeautifulSoup(response.text, 'html.parser')
         results = {}
 
         # Extract content based on selectors
@@ -64,8 +39,8 @@ def scrape_article():
                 elements = soup.select(selector)
 
                 if elements:
-                    # Collect all text from matching elements and ensure it is a string
-                    results[field_name] = ' '.join([str(element.get_text(strip=True)) for element in elements])
+                    # Collect all text from matching elements
+                    results[field_name] = ' '.join([element.get_text(strip=True) for element in elements])
                 else:
                     results[field_name] = None  # No matching element found
             else:
