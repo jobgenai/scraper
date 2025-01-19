@@ -8,6 +8,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By  # This is the missing import
 from webdriver_manager.chrome import ChromeDriverManager
+import os
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
 app = Flask(__name__)
 
@@ -27,14 +31,18 @@ def scrape_article():
         selectors_df['Field Name'] = selectors_df['Field Name'].astype(str)
         selectors_df['Selector'] = selectors_df['Selector'].astype(str)
 
-        # Set up Selenium WebDriver using WebDriver Manager (auto handles chromedriver)
+        # Configure Selenium
         chrome_options = Options()
-        chrome_options.add_argument("--headless")  # Run in headless mode (no browser UI)
+        chrome_options.add_argument("--headless")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
-
-        # Using WebDriver Manager to automatically download and set up chromedriver
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+        chrome_options.binary_location = os.getenv("GOOGLE_CHROME_BIN", "/usr/bin/google-chrome")
+        
+        # Use chromedriver path from environment
+        driver = webdriver.Chrome(
+            service=Service(os.getenv("CHROMEDRIVER_PATH", "/usr/bin/chromedriver")),
+            options=chrome_options
+        )
 
         # Load the dynamic page and wait for it to load fully
         driver.get(url)
